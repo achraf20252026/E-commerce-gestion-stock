@@ -1,0 +1,125 @@
+<!-- templates/accounts/invoice_template.html (Version Pro avec Tailwind) -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Facture {{ facture.num_facture }}</title>
+    <!-- On inclut le CDN de Tailwind pour le style -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* On garde quelques styles spécifiques pour l'impression */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                -webkit-print-color-adjust: exact; /* Force l'impression des couleurs de fond */
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 sm:p-8">
+
+    <!-- Bouton d'impression flottant -->
+    <div class="no-print mb-8 text-center">
+        <button onclick="window.print();" 
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-colors">
+            Imprimer / Enregistrer en PDF
+        </button>
+        <a href="{% url 'accounts:order_history' %}" class="ml-4 text-sm text-gray-600 hover:underline">Retour à mes commandes</a>
+    </div>
+
+    <!-- Conteneur principal de la facture -->
+    <div class="max-w-4xl mx-auto bg-white p-8 sm:p-12 shadow-2xl rounded-lg">
+
+        <!-- 1. En-tête : Logo et Informations de l'entreprise -->
+        <header class="flex justify-between items-start pb-8 border-b">
+            <div>
+                <img src="{{ request.scheme }}://{{ request.get_host }}{% static 'img/logo.png' %}" alt="Logo {{ COMPANY_NAME }}" class="h-16 w-auto">
+                <h2 class="mt-4 text-2xl font-bold text-gray-800">{{ COMPANY_NAME }}</h2>
+                <p class="text-sm text-gray-500">{{ COMPANY_ADDRESS|linebreaksbr }}</p>
+            </div>
+            <div class="text-right">
+                <h1 class="text-3xl font-bold text-gray-900">FACTURE</h1>
+                <p class="text-gray-600 mt-2">{{ facture.num_facture }}</p>
+                <p class="text-sm text-gray-500">Date : {{ facture.date_facture|date:"d F Y" }}</p>
+            </div>
+        </header>
+
+        <!-- 2. Informations Client et Commande -->
+        <section class="grid grid-cols-2 gap-8 mt-8">
+            <div>
+                <h3 class="font-semibold text-gray-500 uppercase tracking-wide text-sm mb-2">Facturé à</h3>
+                <p class="font-bold text-gray-800">{{ facture.commande.client.get_full_name }}</p>
+                <p class="text-gray-600">{{ facture.commande.adresse_livraison|linebreaksbr }}</p>
+                <p class="text-gray-600">{{ facture.commande.client.email }}</p>
+                {% if facture.commande.client.telephone %}
+                <p class="text-gray-600">{{ facture.commande.client.telephone }}</p>
+                {% endif %}
+            </div>
+            <div class="text-right">
+                <h3 class="font-semibold text-gray-500 uppercase tracking-wide text-sm mb-2">Informations</h3>
+                <p class="text-gray-600"><strong>Commande N° :</strong> #{{ facture.commande.id }}</p>
+                <p class="text-gray-600"><strong>Date de commande :</strong> {{ facture.commande.date_commande|date:"d/m/Y" }}</p>
+            </div>
+        </section>
+
+        <!-- 3. Tableau des Lignes de Commande -->
+        <section class="mt-12">
+            <table class="w-full text-left">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="p-3 text-sm font-semibold text-gray-600">Produit</th>
+                        <th class="p-3 text-sm font-semibold text-gray-600 text-center">Quantité</th>
+                        <th class="p-3 text-sm font-semibold text-gray-600 text-right">Prix Unitaire HT</th>
+                        <th class="p-3 text-sm font-semibold text-gray-600 text-right">Total HT</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ligne in facture.commande.lignes.all %}
+                    <tr class="border-b">
+                        <td class="p-3">
+                            <p class="font-medium text-gray-800">{{ ligne.produit.nom }}</p>
+                            <p class="text-xs text-gray-500">{{ ligne.produit.sku|default:"N/A" }}</p>
+                        </td>
+                        <td class="p-3 text-center">{{ ligne.quantite }}</td>
+                        <td class="p-3 text-right">{{ ligne.prix_unitaire }} {{ SHOP_CURRENCY }}</td>
+                        <td class="p-3 text-right font-medium">{{ ligne.total_ligne }} {{ SHOP_CURRENCY }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 4. Totaux et Notes -->
+        <section class="mt-8 flex justify-end">
+            <div class="w-full max-w-xs">
+                <dl class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <dt class="text-gray-600">Sous-total HT</dt>
+                        <dd class="font-medium text-gray-800">{{ facture.prix_ht }} {{ SHOP_CURRENCY }}</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-gray-600">TVA ({{ facture.tva }}%)</dt>
+                        <dd class="font-medium text-gray-800">{{ facture.montant_tva|floatformat:2 }} {{ SHOP_CURRENCY }}</dd>
+                    </div>
+                    <div class="flex justify-between border-t border-gray-200 pt-2 mt-2">
+                        <dt class="text-lg font-bold text-gray-900">Total TTC</dt>
+                        <dd class="text-lg font-bold text-gray-900">{{ facture.prix_ttc }} {{ SHOP_CURRENCY }}</dd>
+                    </div>
+                </dl>
+            </div>
+        </section>
+
+        <!-- 5. Pied de page de la facture -->
+        <footer class="mt-12 pt-8 border-t text-center text-xs text-gray-500">
+            <p>Merci pour votre confiance.</p>
+            <p>{{ COMPANY_NAME }} - {{ COMPANY_ADDRESS }} - {{ COMPANY_PHONE_FIXE }}</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!-- templates/partials/_ai_assistant.html (Final et Complet) -->
+
+<!-- 1. STYLE SPÉCIFIQUE À L'ASSISTANT -->
+<style>
+    @keyframes gentle-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+    @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
+    @keyframes slideInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .animate-gentle-float { animation: gentle-float 3s ease-in-out infinite; }
+    .animate-pulse-ring { animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; }
+    .animate-slideInUp { animation: slideInUp 0.3s ease-out forwards; }
+    
+    #chat-messages::-webkit-scrollbar { width: 6px; }
+    #chat-messages::-webkit-scrollbar-track { background: transparent; }
+    #chat-messages::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    #chat-messages::-webkit-scrollbar-thumb:hover { background: #a0aec0; }
+</style>
+
+<!-- 2. HTML DE L'ASSISTANT -->
+<div id="ai-assistant-container" class="fixed bottom-5 right-5 z-50">
+    <!-- Bulle de bienvenue qui apparaît après un délai -->
+    <div id="welcome-bubble" class="absolute bottom-20 right-0 w-72 bg-white rounded-2xl shadow-2xl border border-gray-200 p-4 hidden transform transition-all duration-300">
+        <div class="flex items-start space-x-3">
+            <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            </div>
+            <div class="flex-1">
+                <div class="flex items-center justify-between mb-2">
+                    <h4 class="font-bold text-gray-900 text-sm">Assistant {{ COMPANY_NAME }}</h4>
+                    <button id="close-welcome" class="text-gray-400 hover:text-gray-600">&times;</button>
+                </div>
+                <p class="text-xs text-gray-700 mb-3 leading-relaxed">
+                    👋 Bonjour ! Je suis là pour vous aider. Posez-moi vos questions !
+                </p>
+                <button id="start-chat" class="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:opacity-90 text-white font-semibold py-2 px-4 rounded-lg text-xs transition-all duration-150">
+                    Commencer la conversation
+                </button>
+            </div>
+        </div>
+        <!-- Flèche pour la bulle -->
+        <div id="welcome-arrow" class="absolute bottom-[70px] right-8 w-4 h-4 bg-white border-r border-b border-gray-200 transform rotate-45 hidden"></div>
+    </div>
+    
+    <!-- Bouton principal flottant -->
+    <div id="chat-bubble" class="fixed bottom-5 right-5 z-50">
+        <div class="absolute inset-0 bg-gradient-to-r from-purple-400 to-blue-400 rounded-full animate-pulse-ring"></div>
+        <button class="relative w-16 h-16 bg-gradient-to-br from-purple-600 to-blue-500 text-white rounded-full flex items-center justify-center shadow-2xl transition-transform transform hover:scale-110 group animate-gentle-float">
+            <svg class="w-8 h-8 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg>
+        </button>
+    </div>
+    
+    <!-- Fenêtre de chat principale (corrigée pour le mobile) -->
+    <div id="chat-window" class="hidden fixed z-50 inset-0 sm:bottom-24 sm:right-5 sm:inset-auto sm:w-96 sm:h-[70vh] sm:max-h-[500px] bg-white border border-gray-300 rounded-none sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+        <div class="bg-gradient-to-r from-purple-600 to-blue-500 text-white p-4 flex justify-between items-center sm:rounded-t-2xl flex-shrink-0">
+             <div class="flex items-center space-x-3"><div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div><div><h3 class="font-semibold text-sm">Assistant {{ COMPANY_NAME }}</h3><p class="text-xs text-blue-100">En ligne</p></div></div>
+            <button id="close-chat" class="text-white/80 hover:text-white text-2xl font-bold transition-colors">&times;</button>
+        </div>
+        <div id="chat-messages" class="flex-grow p-4 overflow-y-auto flex flex-col space-y-3 bg-gray-50"></div>
+        <div class="p-3 border-t border-gray-200 bg-white flex items-center space-x-3 flex-shrink-0">
+            <input type="text" id="chat-input" placeholder="Posez votre question..." class="flex-grow border-2 border-gray-200 focus:border-blue-500 focus:ring-0 rounded-2xl py-2 px-4 text-sm transition-all duration-200">
+            <button id="chat-send" class="bg-gradient-to-r from-blue-500 to-purple-600 hover:opacity-90 text-white rounded-2xl p-3 transition-all duration-200 hover:shadow-lg flex-shrink-0">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/></svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 3. JAVASCRIPT DE L'ASSISTANT -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Tous les éléments du DOM
+    const chatBubble = document.getElementById('chat-bubble').querySelector('button');
+    const chatWindow = document.getElementById('chat-window');
+    const closeChatButton = document.getElementById('close-chat');
+    const chatMessages = document.getElementById('chat-messages');
+    const chatInput = document.getElementById('chat-input');
+    const chatSend = document.getElementById('chat-send');
+    const welcomeBubble = document.getElementById('welcome-bubble');
+    const welcomeArrow = document.getElementById('welcome-arrow');
+    const closeWelcome = document.getElementById('close-welcome');
+    const startChat = document.getElementById('start-chat');
+
+    // Affichage auto de la bulle de bienvenue
+    const welcomeTimeout = setTimeout(() => {
+        if (welcomeBubble) {
+            welcomeBubble.classList.remove('hidden');
+            welcomeArrow.classList.remove('hidden');
+            welcomeBubble.classList.add('animate-slideInUp');
+        }
+    }, 3000);
+
+    // Fonction CSRF
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    // Fonctions de gestion du chat
+    const openChat = () => {
+        chatWindow.classList.remove('hidden');
+        chatBubble.parentElement.classList.add('hidden'); // Cacher le conteneur du bouton
+        welcomeBubble.classList.add('hidden');
+        welcomeArrow.classList.add('hidden');
+        clearTimeout(welcomeTimeout); // Annuler l'affichage si on ouvre avant
+        chatInput.focus();
+        if (!chatMessages.dataset.welcomeSent) {
+            addMessage("Bonjour ! Je suis votre assistant AI. Comment puis-je vous aider ?", "ai");
+            chatMessages.dataset.welcomeSent = "true";
+        }
+    };
+
+    const closeChat = () => {
+        chatWindow.classList.add('hidden');
+        chatBubble.parentElement.classList.remove('hidden'); // Réafficher le conteneur
+    };
+
+    // Listeners
+    chatBubble.addEventListener('click', openChat);
+    startChat?.addEventListener('click', openChat);
+    closeChatButton.addEventListener('click', closeChat);
+    closeWelcome?.addEventListener('click', () => {
+        welcomeBubble.classList.add('hidden');
+        welcomeArrow.classList.add('hidden');
+    });
+
+    const addMessage = (text, sender) => {
+            const messageDiv = document.createElement('div');
+            let processedText = text.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" class="text-blue-600 hover:underline">$1</a>');
+            processedText = processedText.replace(/\n/g, '<br>');
+            
+            messageDiv.innerHTML = `
+                <div class="flex ${sender === 'user' ? 'justify-end' : 'justify-start'} mb-3">
+                    ${sender === 'ai' ? '<div class="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-600 rounded-full flex items-center justify-center mr-2 flex-shrink-0"><svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div>' : ''}
+                    <div class="max-w-[80%] p-3 rounded-2xl text-sm ${sender === 'user' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-br-md' : 'bg-white border border-gray-200 text-gray-800 rounded-bl-md shadow-sm'}">
+                        ${processedText}
+                    </div>
+                </div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        };
+
+    const sendMessage = async () => {
+            const message = chatInput.value.trim();
+            if (message === '') return;
+            
+            addMessage(message, 'user');
+            chatInput.value = '';
+            chatInput.disabled = true;
+            
+            // Animation de frappe
+            const typingDiv = document.createElement('div');
+            typingDiv.innerHTML = `
+                <div class="flex justify-start mb-3">
+                    <div class="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-600 rounded-full flex items-center justify-center mr-2">
+                        <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                    </div>
+                    <div class="bg-white border border-gray-200 p-3 rounded-2xl rounded-bl-md shadow-sm">
+                        <div class="flex space-x-1">
+                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s;"></div>
+                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s;"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            try {
+                const response = await fetch("{% url 'ai_assistant:chat_with_ai' %}", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+                    body: JSON.stringify({ message: message })
+                });
+                
+                // Supprimer l'animation de frappe
+                chatMessages.removeChild(typingDiv);
+                
+                if (!response.ok) { 
+                    throw new Error(`Erreur HTTP: ${response.status}`); 
+                }
+                const data = await response.json();
+                addMessage(data.reply, 'ai');
+            } catch (error) {
+                console.error("Erreur:", error);
+                chatMessages.removeChild(typingDiv);
+                addMessage("Désolé, une erreur est survenue. Veuillez réessayer.", 'ai');
+            } finally {
+                chatInput.disabled = false;
+                chatInput.focus();
+            }
+        };
+    
+    chatSend.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !chatInput.disabled) sendMessage();
+    });
+});
+</script>

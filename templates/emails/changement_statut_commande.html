@@ -1,0 +1,11 @@
+<h1>Mise à jour de votre commande n°{{ commande.id }}</h1>
+<p>Bonjour {{ commande.client.first_name }},</p>
+<p>
+  Le statut de votre commande a été mis à jour.
+  Elle est maintenant : <strong>{{ commande.get_etat_display }}</strong>.
+</p>
+{% if commande.etat == 'expediee' %}
+  <p>Vous devriez la recevoir sous peu.</p>
+{% endif %}
+<p>Vous pouvez suivre son évolution depuis votre espace client.</p>
+<p>L'équipe {{ COMPANY_NAME }}</p>

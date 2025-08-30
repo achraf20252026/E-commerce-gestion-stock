@@ -1,0 +1,119 @@
+<!-- templates/ecommerce/product_detail.html (Version Pro) -->
+{% extends "base.html" %}
+
+{% block title %}{{ produit.nom }} - {{ COMPANY_NAME }}{% endblock %}
+
+{% block meta_description %}
+{% if produit.meta_description %}
+  {{ produit.meta_description }}
+{% else %}
+  {{ produit.description|truncatewords:25 }}
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+    <!-- Fil d'Ariane -->
+    {% include 'ecommerce/_breadcrumbs.html' %}
+
+    <div class="bg-white rounded-lg shadow-lg p-4 md:p-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            <!-- 1. Colonne des Images -->
+            <div x-data="{ mainImage: '{{ produit.get_image_principale.image.url|default:'' }}' }">
+                <!-- Image Principale -->
+                <div class="mb-4 rounded-lg overflow-hidden">
+                    <img :src="mainImage" alt="{{ produit.nom }}" class="w-full h-auto object-cover aspect-square">
+                </div>
+                <!-- Vignettes -->
+                <div class="flex space-x-2">
+                    {% for image in produit.images.all %}
+                    <div class="w-1/4">
+                        <img src="{{ image.image.url }}" 
+                             alt="Vignette de {{ produit.nom }}" 
+                             @click="mainImage = '{{ image.image.url }}'"
+                             class="w-full h-auto object-cover cursor-pointer rounded-md border-2 hover:border-blue-500"
+                             :class="{ 'border-blue-500': mainImage === '{{ image.image.url }}' }">
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- 2. Colonne d'Informations -->
+            <div>
+                <!-- Titre -->
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ produit.nom }}</h1>
+                <!-- Catégorie -->
+                <a href="{{ produit.categorie.get_absolute_url }}" class="text-sm font-medium text-gray-500 hover:text-blue-600 mb-4 inline-block">
+                    {{ produit.categorie.nom }}
+                </a>
+
+                <!-- Prix -->
+                <p class="text-4xl font-extrabold text-blue-600 mb-4">{{ produit.prix }} {{ SHOP_CURRENCY }}</p>
+
+                <!-- Statut du Stock -->
+                <div class="mb-6">
+                    {% if produit.quantite_en_stock > 5 %}
+                      <p class="flex items-center text-green-600">
+                          <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                          En stock
+                      </p>
+                    {% elif produit.quantite_en_stock > 0 %}
+                      <p class="flex items-center text-orange-500">
+                          <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM10 5a1 1 0 011 1v3a1 1 0 01-2 0V6a1 1 0 011-1zm1 5a1 1 0 10-2 0v2a1 1 0 102 0v-2z" clip-rule="evenodd"></path></svg>
+                          Plus que {{ produit.quantite_en_stock }} en stock !
+                      </p>
+                    {% else %}
+                      <p class="flex items-center text-red-500">
+                          <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>
+                          Épuisé
+                      </p>
+                    {% endif %}
+                </div>
+
+                <!-- Formulaire d'Ajout au Panier -->
+                {% if produit.quantite_en_stock > 0 %}
+                  <form action="{% url 'ecommerce:cart_add' product_id=produit.id %}" method="post">
+                    {% csrf_token %}
+                    <div class="flex items-center space-x-4">
+                        <div>
+                            <label for="id_quantity" class="block text-sm font-medium text-gray-700">Quantité</label>
+                            {{ cart_product_form.quantity }}
+                        </div>
+                        <button type="submit" 
+                                class="flex-grow bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-300">
+                            Ajouter au panier
+                        </button>
+                    </div>
+                    {{ cart_product_form.update }}
+                  </form>
+                {% endif %}
+
+                <!-- Description -->
+                <div class="mt-8 pt-6 border-t">
+                    <h3 class="font-semibold text-lg mb-2">Description</h3>
+                    <div class="prose max-w-none text-gray-600">
+                        {{ produit.description|linebreaks }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section Produits Similaires -->
+    {% if produits_similaires %}
+      <div class="mt-16">
+          <h2 class="text-2xl font-bold mb-6">Vous aimerez aussi</h2>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+              {% for produit in produits_similaires %}
+                  {% include 'partials/_product_card.html' with produit=produit %}
+              {% endfor %}
+          </div>
+      </div>
+    {% endif %}
+
+{% endblock %}
+
+{% block extra_scripts %}
+  {% include 'ecommerce/_product_schema.html' %}
+{% endblock %}

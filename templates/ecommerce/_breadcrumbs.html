@@ -1,0 +1,41 @@
+<!-- templates/ecommerce/_breadcrumbs.html (Avec Données Structurées) -->
+
+{# 1. Le fil d'Ariane visible pour les utilisateurs (ne change pas) #}
+{% if breadcrumbs %}
+<nav aria-label="breadcrumb" style="margin-bottom: 20px;">
+  <ol style="list-style: none; display: flex; padding: 0;">
+    {% for crumb in breadcrumbs %}
+      <li style="margin-right: 5px;">
+        {% if not forloop.last %}
+          <a href="{{ crumb.url }}">{{ crumb.name }}</a> >
+        {% else %}
+          <span style="font-weight: bold;">{{ crumb.name }}</span>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ol>
+</nav>
+{% endif %}
+
+{# 2. Les données structurées invisibles pour les robots de recherche #}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+  {% for crumb in breadcrumbs %}
+    {
+      "@type": "ListItem",
+      "position": {{ forloop.counter }},
+      "name": "{{ crumb.name|escapejs }}"
+      {# On met la virgule ici, uniquement si le champ 'item' va être ajouté #}
+      {% if not forloop.last %},
+      "item": "{{ request.scheme }}://{{ request.get_host }}{{ crumb.url }}"
+      {% endif %}
+    }
+    {# On ajoute la virgule entre les objets {}, uniquement s'il y en a un autre qui suit #}
+    {% if not forloop.last %},{% endif %}
+  {% endfor %}
+  ]
+}
+</script>

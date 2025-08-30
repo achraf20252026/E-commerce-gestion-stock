@@ -1,0 +1,226 @@
+<!-- templates/base.html (Version Améliorée) -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr" class="h-full bg-gray-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ COMPANY_NAME }}{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Boutique en ligne spécialisée.{% endblock %}">
+    <link rel="icon" type="image/png" href="{% static 'img/icon.png' %}">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <style>
+        @keyframes gentle-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-gentle-float { animation: gentle-float 3s ease-in-out infinite; }
+        .animate-pulse-ring { animation: pulse-ring 2s infinite; }
+        .animate-slideInUp { animation: slideInUp 0.3s ease-out forwards; }
+        [x-cloak] { display: none !important; }
+        
+        /* Scrollbar personnalisé pour le chat */
+        #chat-messages::-webkit-scrollbar { width: 6px; }
+        #chat-messages::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 3px; }
+        #chat-messages::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 3px; }
+        #chat-messages::-webkit-scrollbar-thumb:hover { background: #a1a1a1; }
+    </style>
+</head>
+<body class="h-full flex flex-col font-sans text-gray-800 bg-gradient-to-br from-gray-50 to-gray-100">
+
+    <!-- Header / Navbar -->
+    <header class="bg-white/95 backdrop-blur-sm shadow-lg shadow-gray-200/50 sticky top-0 z-40 border-b border-gray-100" x-data="{ mobileMenuOpen: false }">
+        <div class="container mx-auto px-4 sm:px-6 py-4">
+            <div class="flex justify-between items-center">
+                <!-- Logo -->
+                <div class="flex-shrink-0">
+                    <a href="{% url 'ecommerce:home_page' %}" class="block transform hover:scale-105 transition-transform duration-200">
+                        <img src="{% static 'img/logo.png' %}" alt="Logo de {{ COMPANY_NAME }}" class="h-12 w-auto">
+                    </a>
+                </div>
+                
+                <!-- Barre de recherche (Desktop) -->
+                <div class="hidden md:block w-full max-w-lg mx-8">
+                    <form method="get" action="{% url 'ecommerce:search_results' %}" class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </div>
+                        <input type="search" name="query" placeholder="Rechercher un produit..."
+                               class="w-full bg-gray-50 border-2 border-gray-200 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 rounded-2xl py-3 pl-12 pr-4 text-sm transition-all duration-200 placeholder-gray-500">
+                    </form>
+                </div>
+                
+                <!-- Liens Droite (Desktop) -->
+                <div class="hidden md:flex items-center space-x-6">
+                    {% include 'partials/_desktop_nav.html' %}
+                </div>
+                
+                <!-- Bouton Menu Mobile -->
+                <div class="md:hidden flex items-center">
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg focus:outline-none transition-colors">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Menu Mobile avec transition -->
+            <div x-show="mobileMenuOpen" 
+                 x-cloak
+                 @click.away="mobileMenuOpen = false" 
+                 class="md:hidden mt-6 pb-4"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 -translate-y-4"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 translate-y-0"
+                 x-transition:leave-end="opacity-0 -translate-y-4">
+                <div class="mb-6">
+                    <form method="get" action="{% url 'ecommerce:search_results' %}" class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </div>
+                        <input type="search" name="query" placeholder="Rechercher..."
+                               class="w-full bg-gray-50 border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-2xl py-3 pl-12 pr-4 text-sm">
+                    </form>
+                </div>
+                {% include 'partials/_mobile_nav.html' %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenu Principal -->
+    <main class="flex-grow container mx-auto px-4 sm:px-6 py-8">
+        <!-- Messages Flash améliorés -->
+        {% if messages %}
+            <div class="messages mb-8 space-y-3">
+                {% for message in messages %}
+                    <div class="p-4 rounded-xl shadow-md border-l-4 {% if message.tags == 'success' %}bg-green-50 border-l-green-500 text-green-800{% elif message.tags == 'error' %}bg-red-50 border-l-red-500 text-red-800{% elif message.tags == 'warning' %}bg-yellow-50 border-l-yellow-500 text-yellow-800{% else %}bg-blue-50 border-l-blue-500 text-blue-800{% endif %} animate-slideInUp" role="alert">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 mr-3">
+                                {% if message.tags == 'success' %}
+                                    <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                {% elif message.tags == 'error' %}
+                                    <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                    </svg>
+                                {% else %}
+                                    <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                    </svg>
+                                {% endif %}
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-semibold mb-1">
+                                    {% if message.tags == 'success' %}Succès
+                                    {% elif message.tags == 'error' %}Erreur
+                                    {% elif message.tags == 'warning' %}Attention
+                                    {% else %}Information
+                                    {% endif %}
+                                </p>
+                                <p class="text-sm">{{ message|safe }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        {% block content %}
+        <!-- Le contenu spécifique à chaque page viendra ici -->
+        {% endblock %}
+    </main>
+
+    <!-- Footer amélioré -->
+    <!-- Footer -->
+    <!-- Footer Professionnel E-commerce -->
+<footer class="bg-gray-900 text-gray-300 mt-16 pt-12 pb-6">
+    <div class="container mx-auto px-6">
+        <div class="grid md:grid-cols-4 gap-10 mb-10">
+            
+            <!-- Col 1 : Logo et description -->
+            <div>
+                <img src="{% static 'img/logo.png' %}" alt="{{ COMPANY_NAME }}" class="h-12 mb-4 filter brightness-0 invert">
+                <p class="text-sm text-gray-400 leading-relaxed">
+                    {{ COMPANY_NAME }} – Votre partenaire de confiance pour tous vos besoins en télécommunications et produits high-tech au Maroc.
+                </p>
+            </div>
+
+            <!-- Col 2 : Liens Rapides -->
+            <div>
+                <h4 class="font-semibold text-white mb-4">Liens Rapides</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="{% url 'core:contact' %}" class="hover:text-blue-400 transition">Contact</a></li>
+                    <li><a href="{% url 'core:terms' %}" class="hover:text-blue-400 transition">Conditions Générales de Vente</a></li>
+                    <li><a href="{% url 'core:privacy' %}" class="hover:text-blue-400 transition">Politique de Confidentialité</a></li>
+                </ul>
+            </div>
+
+            <!-- Col 3 : Assistance -->
+            <div>
+                <h4 class="font-semibold text-white mb-4">Assistance</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="{% url 'core:contact' %}" class="hover:text-blue-400 transition">FAQ</a></li>
+                    <li><a href="{% url 'accounts:order_history' %}" class="hover:text-blue-400 transition">Suivi de commande</a></li>
+                    <li><a href="{% url 'core:privacy' %}" class="hover:text-blue-400 transition">Retour & Remboursement</a></li>
+                </ul>
+            </div>
+
+            <!-- Col 4 : Contact -->
+            <div>
+                <h4 class="font-semibold text-white mb-4">Nous Contacter</h4>
+                <ul class="space-y-2 text-sm text-gray-400">
+                    <li class="flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
+                        </svg>
+                        {{ COMPANY_PHONE_FIXE }}
+                    </li>
+                    <li class="flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                            <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                        </svg>
+                        {{ COMPANY_EMAIL }}
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Ligne séparatrice -->
+        <div class="border-t border-gray-700 pt-6 text-center text-sm text-gray-500">
+            <p>&copy; {% now "Y" %} {{ COMPANY_NAME }}. Tous droits réservés.</p>
+            <p class="mt-1">Conçu avec ❤️ au Maroc</p>
+        </div>
+    </div>
+</footer>
+
+
+    {% block extra_scripts %}{% endblock %}
+
+    <!-- ======================= ASSISTANT IA AMÉLIORÉ ======================= -->
+
+    {% include 'partials/_ai_assistant.html' %}
+    
+    
+
+</body>
+</html>

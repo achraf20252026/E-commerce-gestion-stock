@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Tableau de Bord - Ventes</h1>
+  <p>Bienvenue, {{ user.first_name }}. Voici un aperçu de votre activité.</p>
+  
+  <p>Commandes en attente de confirmation : {{ commandes_en_attente }}</p>
+  
+  <ul>
+      <li><a href="#">Voir les commandes à traiter</a></li>
+      <li><a href="#">Créer une nouvelle commande (vente en magasin)</a></li>
+  </ul>
+{% endblock %}

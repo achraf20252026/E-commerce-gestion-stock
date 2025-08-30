@@ -1,0 +1,292 @@
+<!-- templates/ecommerce/cart_detail.html (Version Améliorée) -->
+{% extends "base.html" %}
+
+{% block title %}Votre Panier - {{ COMPANY_NAME }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-4 sm:py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- En-tête avec navigation breadcrumb -->
+        <div class="mb-6 sm:mb-8">
+            <nav class="flex mb-4" aria-label="Breadcrumb">
+                <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                    <li><a href="{% url 'ecommerce:home_page' %}" class="text-gray-500 hover:text-gray-700 text-sm">Accueil</a></li>
+                    <li><span class="text-gray-400 mx-2">/</span></li>
+                    <li><span class="text-gray-900 text-sm font-medium">Panier</span></li>
+                </ol>
+            </nav>
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Votre Panier</h1>
+        </div>
+
+        {% if cart %}
+            <!-- Compteur d'articles -->
+            <div class="mb-6">
+                <p class="text-sm text-gray-600">
+                    <span class="font-medium">{{ cart|length }}</span> 
+                    {% if cart|length > 1 %}articles{% else %}article{% endif %} dans votre panier
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+                
+                <!-- Liste des articles (8/12 colonnes) -->
+                <div class="lg:col-span-8">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                        <div class="divide-y divide-gray-100">
+                            {% for item in cart %}
+                                {% with produit=item.product %}
+                                <div class="p-4 sm:p-6 hover:bg-gray-50 transition-colors duration-200">
+                                    <div class="flex flex-col sm:flex-row gap-4">
+                                        <!-- Image produit -->
+                                        <div class="flex-shrink-0 mx-auto sm:mx-0">
+                                            {% with image_principale=produit.get_image_principale %}
+                                            <a href="{{ produit.get_absolute_url }}" class="block group">
+                                                <div class="relative overflow-hidden rounded-lg">
+                                                    <img src="{{ image_principale.image.url }}" 
+                                                         alt="{{ produit.nom }}" 
+                                                         class="w-20 h-20 sm:w-24 sm:h-24 object-cover group-hover:scale-105 transition-transform duration-200">
+                                                </div>
+                                            </a>
+                                            {% endwith %}
+                                        </div>
+
+                                        <!-- Informations produit -->
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+                                                <div class="flex-1 min-w-0">
+                                                    <h3 class="text-base sm:text-lg font-semibold text-gray-900 truncate">
+                                                        <a href="{{ produit.get_absolute_url }}" 
+                                                           class="hover:text-blue-600 transition-colors">
+                                                            {{ produit.nom }}
+                                                        </a>
+                                                    </h3>
+                                                    <p class="text-sm text-gray-500 mt-1">{{ produit.categorie.nom }}</p>
+                                                    
+                                                    <!-- Prix unitaire mobile -->
+                                                    <div class="sm:hidden mt-2">
+                                                        <span class="text-lg font-bold text-gray-900">{{ item.price }} {{ SHOP_CURRENCY }}</span>
+                                                        <span class="text-sm text-gray-500 ml-2">/ unité</span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Prix unitaire desktop -->
+                                                <div class="hidden sm:block text-right">
+                                                    <p class="text-lg font-bold text-gray-900">{{ item.price }} {{ SHOP_CURRENCY }}</p>
+                                                    <p class="text-sm text-gray-500">par unité</p>
+                                                </div>
+                                            </div>
+
+                                            <!-- Actions et quantité -->
+                                            <div class="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                                <!-- Contrôles quantité -->
+                                                <div class="flex items-center">
+                                                    <form action="{% url 'ecommerce:cart_add' product_id=produit.id %}" 
+                                                          method="post" 
+                                                          class="flex items-center bg-gray-50 rounded-lg border border-gray-200">
+                                                        {% csrf_token %}
+                                                        <button type="button" 
+                                                                class="quantity-btn-minus p-2 hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-700"
+                                                                data-product-id="{{ produit.id }}">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                                                            </svg>
+                                                        </button>
+                                                        
+                                                        <input type="number" 
+                                                               id="quantity-{{ produit.id }}" 
+                                                               name="quantity" 
+                                                               value="{{ item.quantity }}" 
+                                                               min="1" 
+                                                               max="{{ produit.quantite_en_stock }}" 
+                                                               class="w-16 text-center border-0 bg-transparent focus:ring-0 font-medium text-gray-900 quantity-input"
+                                                               data-product-id="{{ produit.id }}">
+                                                        
+                                                        <button type="button" 
+                                                                class="quantity-btn-plus p-2 hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-700"
+                                                                data-product-id="{{ produit.id }}">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                                            </svg>
+                                                        </button>
+                                                        
+                                                        <input type="hidden" name="update" value="True">
+                                                        <button type="submit" class="hidden update-btn-{{ produit.id }}">Mettre à jour</button>
+                                                    </form>
+
+                                                    <!-- Stock disponible -->
+                                                    <span class="ml-3 text-xs text-gray-500">
+                                                        {{ produit.quantite_en_stock }} en stock
+                                                    </span>
+                                                </div>
+
+                                                <!-- Actions -->
+                                                <div class="flex items-center justify-between sm:justify-end gap-4">
+                                                    <!-- Sous-total par ligne -->
+                                                    <div class="text-right">
+                                                        <p class="font-semibold text-gray-900">{{ item.get_total_price }} {{ SHOP_CURRENCY }}</p>
+                                                        <p class="text-xs text-gray-500">Total ligne</p>
+                                                    </div>
+
+                                                    <!-- Bouton suppression -->
+                                                    <form action="{% url 'ecommerce:cart_remove' product_id=produit.id %}" method="post">
+                                                        {% csrf_token %}
+                                                        <button type="submit" 
+                                                                class="inline-flex items-center p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors group"
+                                                                title="Supprimer cet article">
+                                                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                            </svg>
+                                                            <span class="sr-only sm:not-sr-only sm:ml-1 text-sm">Supprimer</span>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endwith %}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Actions globales sur mobile -->
+                    <div class="mt-4 sm:hidden">
+                        <button class="w-full text-center text-red-600 hover:text-red-800 font-medium py-2 text-sm">
+                            Vider le panier
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Récapitulatif (4/12 colonnes) -->
+                <div class="lg:col-span-4">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sticky top-24">
+                        <div class="flex items-center justify-between mb-6">
+                            <h2 class="text-lg font-semibold text-gray-900">Récapitulatif</h2>
+                            <span class="text-sm text-gray-500">{{ cart|length }} article{{ cart|length|pluralize }}</span>
+                        </div>
+
+                        <div class="space-y-4 mb-6">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Sous-total</span>
+                                <span class="font-medium text-gray-900">{{ cart.get_total_price }} {{ SHOP_CURRENCY }}</span>
+                            </div>
+                            
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Livraison</span>
+                                <span class="text-sm text-gray-500">Calculée à l'étape suivante</span>
+                            </div>
+
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">TVA</span>
+                                <span class="text-sm text-gray-500">Incluse</span>
+                            </div>
+
+                            <div class="border-t pt-4">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-base font-semibold text-gray-900">Total</span>
+                                    <span class="text-xl font-bold text-gray-900">{{ cart.get_total_price }} {{ SHOP_CURRENCY }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bouton principal -->
+                        <div class="space-y-3">
+                            <a href="{% url 'ecommerce:checkout' %}" 
+                               class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg text-center block transition-colors shadow-sm hover:shadow-md">
+                                Finaliser la commande
+                            </a>
+                            
+                            <a href="{% url 'ecommerce:product_list' %}" 
+                               class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-3 px-4 rounded-lg text-center block transition-colors">
+                                Continuer mes achats
+                            </a>
+                        </div>
+
+                        <!-- Informations de sécurité -->
+                        <div class="mt-6 pt-6 border-t border-gray-100">
+                            <div class="flex items-center text-sm text-gray-600">
+                                <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                </svg>
+                                Paiement 100% sécurisé
+                            </div>
+                        </div>
+
+                        
+                    </div>
+                </div>
+            </div>
+
+        {% else %}
+            <!-- Panier vide -->
+            <div class="text-center bg-white rounded-xl shadow-sm border border-gray-200 p-12 lg:p-16">
+                <div class="mx-auto w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                    <svg class="w-10 h-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
+                              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                </div>
+                
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Votre panier est vide</h3>
+                <p class="text-gray-500 mb-8 max-w-sm mx-auto">Découvrez nos produits et commencez à remplir votre panier avec vos articles préférés.</p>
+                
+                <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                    <a href="{% url 'ecommerce:home_page' %}" 
+                       class="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                        </svg>
+                        Retour à l'accueil
+                    </a>
+                    
+                    <a href="{% url 'ecommerce:product_list' %}" 
+                       class="inline-flex items-center justify-center px-6 py-3 bg-gray-100 text-gray-800 font-medium rounded-lg hover:bg-gray-200 transition-colors">
+                        Voir tous les produits
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- JavaScript pour les contrôles de quantité -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gestion des boutons +/-
+    document.querySelectorAll('.quantity-btn-minus, .quantity-btn-plus').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const productId = this.dataset.productId;
+            const input = document.getElementById(`quantity-${productId}`);
+            const currentValue = parseInt(input.value);
+            const min = parseInt(input.min);
+            const max = parseInt(input.max);
+            
+            if (this.classList.contains('quantity-btn-minus') && currentValue > min) {
+                input.value = currentValue - 1;
+            } else if (this.classList.contains('quantity-btn-plus') && currentValue < max) {
+                input.value = currentValue + 1;
+            }
+            
+            // Auto-submit après changement
+            setTimeout(() => {
+                document.querySelector(`.update-btn-${productId}`).click();
+            }, 500);
+        });
+    });
+
+    // Auto-submit sur changement manuel
+    document.querySelectorAll('.quantity-input').forEach(input => {
+        let timeout;
+        input.addEventListener('input', function() {
+            clearTimeout(timeout);
+            const productId = this.dataset.productId;
+            timeout = setTimeout(() => {
+                document.querySelector(`.update-btn-${productId}`).click();
+            }, 1000);
+        });
+    });
+});
+</script>
+
+{% endblock %}

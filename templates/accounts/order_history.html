@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-8">
+  <div class="text-center mb-10">
+    <h2 class="text-4xl font-bold text-gray-800 mb-3">Mes Commandes</h2>
+    <p class="text-lg text-gray-600">Retrouvez l'historique de tous vos achats</p>
+    <div class="w-24 h-1 bg-blue-500 mx-auto mt-4 rounded-full"></div>
+  </div>
+
+  {% if commandes %}
+  <div class="space-y-6">
+    {% for commande in commandes %}
+    <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-lg">
+      <!-- En-tête de commande -->
+      <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-5 border-b border-gray-200">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+          <div>
+            <h3 class="text-xl font-semibold text-gray-800 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+              Commande #{{ commande.id }}
+            </h3>
+            <p class="text-gray-600 mt-1">
+              Passée le <span class="font-medium">{{ commande.date_commande|date:"d/m/Y" }}</span> à {{ commande.date_commande|date:"H:i" }}
+            </p>
+          </div>
+          
+          <div class="mt-3 md:mt-0">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
+              {% if commande.etat == commande.Etat.EN_ATTENTE %}bg-yellow-100 text-yellow-800
+              {% elif commande.etat == commande.Etat.VALIDEE %}bg-blue-100 text-blue-800
+              {% elif commande.etat == commande.Etat.EN_COURS %}bg-indigo-100 text-indigo-800
+              {% elif commande.etat == commande.Etat.LIVREE %}bg-green-100 text-green-800
+              {% elif commande.etat == commande.Etat.ANNULEE %}bg-red-100 text-red-800
+              {% else %}bg-gray-100 text-gray-800{% endif %}">
+              {{ commande.get_etat_display }}
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Détails de la commande -->
+      <div class="p-5">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Produits -->
+          <div class="md:col-span-2">
+            <h4 class="font-medium text-gray-700 mb-3 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+              </svg>
+              Articles commandés
+            </h4>
+            <ul class="space-y-3">
+              {% for ligne in commande.lignes.all %}
+              <li class="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                <div class="flex items-center">
+                  <div class="h-12 w-12 bg-gray-200 rounded-md overflow-hidden mr-3">
+                    {% if ligne.produit.get_image_principale %}
+                    <img src="{{ ligne.produit.get_image_principale.image.url }}" alt="{{ ligne.produit.nom }}" class="h-full w-full object-cover">
+                    {% else %}
+                    <div class="h-full w-full flex items-center justify-center bg-gray-100">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    {% endif %}
+                  </div>
+                  <div>
+                    <p class="font-medium text-gray-800">{{ ligne.produit.nom }}</p>
+                    <p class="text-sm text-gray-500">Quantité: {{ ligne.quantite }}</p>
+                  </div>
+                </div>
+                <span class="font-medium text-gray-800">{{ ligne.prix_unitaire }} €</span>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+          
+          <!-- Résumé -->
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <h4 class="font-medium text-gray-700 mb-3">Résumé de la commande</h4>
+            <div class="space-y-2">
+              <div class="flex justify-between">
+                <span class="text-gray-600">Sous-total</span>
+                <span class="text-gray-800">{{ commande.total }} €</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Livraison</span>
+                <span class="text-gray-800">Gratuite</span>
+              </div>
+              <div class="border-t border-gray-200 pt-2 mt-2">
+                <div class="flex justify-between font-semibold">
+                  <span class="text-gray-800">Total</span>
+                  <span class="text-blue-600 text-lg">{{ commande.total }} €</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="mt-6 space-y-3">
+              {% if commande.etat == commande.Etat.EN_ATTENTE %}
+              <form action="{% url 'accounts:cancel_order' order_id=commande.id %}" method="post"
+                    onsubmit="return confirm('Êtes-vous sûr de vouloir annuler cette commande ?');">
+                {% csrf_token %}
+                <button type="submit" class="w-full flex items-center justify-center px-4 py-2 bg-white border border-red-300 text-red-600 rounded-md hover:bg-red-50 transition-colors duration-200">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Annuler la commande
+                </button>
+              </form>
+              {% endif %}
+              
+              {% if commande.etat == "terminee" and commande.facture %}
+              <a href="{% url 'accounts:view_invoice' order_id=commande.id %}" target="_blank" 
+                 class="block text-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Voir la facture
+              </a>
+              {% endif %}
+              
+              <a href="{% url 'core:contact' %}" class="block text-center px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+                Contacter le support
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <!-- État vide -->
+  <div class="text-center py-16 bg-white rounded-xl shadow-md">
+    <div class="max-w-md mx-auto">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+      </svg>
+      <h3 class="text-2xl font-semibold text-gray-700 mb-2">Aucune commande</h3>
+      <p class="text-gray-500 mb-6">Vous n'avez passé aucune commande pour le moment.</p>
+      <a href="{% url 'ecommerce:product_list' %}" class="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors duration-200">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+        Découvrir nos produits
+      </a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

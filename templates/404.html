@@ -1,0 +1,45 @@
+<!-- templates/404.html -->
+{% extends "base.html" %}
+
+{% block title %}Page non trouvée - {{ COMPANY_NAME }}{% endblock %}
+
+{% block content %}
+    <div class="text-center py-12 md:py-20">
+        <div class="max-w-md mx-auto">
+            <!-- Illustration ou Icône -->
+            <div class="text-blue-500 mb-6">
+                <svg class="w-24 h-24 mx-auto" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                </svg>
+            </div>
+            
+            <h1 class="text-6xl font-extrabold text-gray-800 tracking-tight">404</h1>
+            <h2 class="mt-2 text-2xl font-semibold text-gray-900">Page non trouvée</h2>
+            
+            <p class="mt-4 text-gray-600">
+                Désolé, nous n'avons pas pu trouver la page que vous cherchez.
+                Peut-être avez-vous mal tapé l'adresse ?
+            </p>
+            
+            <div class="mt-8 flex flex-col sm:flex-row justify-center items-center gap-4">
+                <a href="{% url 'ecommerce:home_page' %}"
+                   class="w-full sm:w-auto flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors shadow-sm hover:shadow-md">
+                    <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                    Retour à l'accueil
+                </a>
+                
+                <a href="{% url 'core:contact' %}"
+                   class="w-full sm:w-auto bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-3 px-6 rounded-lg transition-colors">
+                    Contactez le support
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{# On cache l'assistant IA sur cette page pour ne pas distraire #}
+{% block extra_scripts %}
+<style>
+    #chat-bubble, #chat-window { display: none !important; }
+</style>
+{% endblock %}

@@ -1,0 +1,5 @@
+<h1>Nouvelle commande à traiter !</h1>
+<p>Une nouvelle commande (n°{{ commande.id }}) vient d'être passée sur le site.</p>
+<p>Client : {{ commande.client.get_full_name }} ({{ commande.client.email }})</p>
+<p>Total : {{ commande.total }} {{ SHOP_CURRENCY }}</p>
+<p>Veuillez vous connecter à l'interface de gestion pour la confirmer.</p>

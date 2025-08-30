@@ -1,0 +1,165 @@
+<!-- templates/ecommerce/product_list.html (Version Pro) -->
+{% extends "base.html" %}
+{% load url_helpers %}
+
+{% block title %}
+    {% if categorie %}{{ categorie.nom }}{% elif query %}Résultats pour "{{ query }}"{% else %}Boutique{% endif %} - {{ COMPANY_NAME }}
+{% endblock %}
+
+{% block content %}
+
+    <!-- Fil d'Ariane -->
+    {% include 'ecommerce/_breadcrumbs.html' %}
+
+    <!-- Titre de la page -->
+    <div class="mb-8">
+        {% if query %}
+            <h1 class="text-3xl font-bold">Résultats de recherche pour <span class="text-blue-600">"{{ query }}"</span></h1>
+        {% elif categorie %}
+            <h1 class="text-3xl font-bold">{{ categorie.nom }}</h1>
+        {% else %}
+            <h1 class="text-3xl font-bold">Tous nos produits</h1>
+        {% endif %}
+    </div>
+
+    <div class="flex flex-col md:flex-row gap-8">
+        
+<!-- 1. Colonne Latérale (Filtres et Catégories) -->
+<aside class="w-full md:w-1/4 lg:w-1/5">
+    <div class="bg-white p-4 rounded-lg shadow-sm">
+        <!-- Filtre par Catégorie -->
+        <div x-data="{ open: true }" class="mb-6">
+            <div @click="open = !open" class="flex justify-between items-center cursor-pointer mb-3 border-b pb-2">
+                <h3 class="font-semibold text-lg">Catégories</h3>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </div>
+            <ul x-show="open" x-transition class="space-y-2">
+                <li>
+                    <a href="{% url 'ecommerce:product_list' %}" 
+                       class="block px-4 py-2 rounded-lg transition-all duration-200 
+                              {% if not categorie %}bg-blue-100 text-blue-700 font-semibold border border-blue-200{% else %}bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 border border-transparent{% endif %}">
+                        <div class="flex items-center">
+                            <span class="mr-2">📦</span>
+                            Toutes les catégories
+                        </div>
+                    </a>
+                </li>
+                {% for cat in categories %}
+                <li>
+                    <a href="{{ cat.get_absolute_url }}" 
+                       class="block px-4 py-2 rounded-lg transition-all duration-200 
+                              {% if categorie.slug == cat.slug %}bg-blue-100 text-blue-700 font-semibold border border-blue-200{% else %}bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 border border-transparent{% endif %}">
+                        <div class="flex items-center">
+                            <span class="mr-2">🔍</span>
+                            {{ cat.nom }}
+                        </div>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Filtre par Tri -->
+        <div x-data="{ open: true }" class="mb-6">
+            <div @click="open = !open" class="flex justify-between items-center cursor-pointer mb-3 border-b pb-2">
+                <h3 class="font-semibold text-lg">Trier par</h3>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </div>
+            <ul x-show="open" x-transition class="space-y-2">
+                <li>
+                    <a href="?{% url_replace sort='price_asc' %}" 
+                       class="block px-4 py-2 rounded-lg transition-all duration-200 
+                              {% if sort == 'price_asc' %}bg-blue-100 text-blue-700 font-semibold border border-blue-200{% else %}bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 border border-transparent{% endif %}">
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+                            </svg>
+                            Prix croissant
+                        </div>
+                    </a>
+                </li>
+                <li>
+                    <a href="?{% url_replace sort='price_desc' %}"
+                       class="block px-4 py-2 rounded-lg transition-all duration-200 
+                              {% if sort == 'price_desc' %}bg-blue-100 text-blue-700 font-semibold border border-blue-200{% else %}bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 border border-transparent{% endif %}">
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
+                            </svg>
+                            Prix décroissant
+                        </div>
+                    </a>
+                </li>
+                <li>
+                    <a href="?{% url_replace sort='name_asc' %}"
+                       class="block px-4 py-2 rounded-lg transition-all duration-200 
+                              {% if sort == 'name_asc' %}bg-blue-100 text-blue-700 font-semibold border border-blue-200{% else %}bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 border border-transparent{% endif %}">
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                            Nom (A-Z)
+                        </div>
+                    </a>
+                </li>
+                <li>
+                    <a href="?{% url_replace sort='name_desc' %}"
+                       class="block px-4 py-2 rounded-lg transition-all duration-200 
+                              {% if sort == 'name_desc' %}bg-blue-100 text-blue-700 font-semibold border border-blue-200{% else %}bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 border border-transparent{% endif %}">
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                            </svg>
+                            Nom (Z-A)
+                        </div>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</aside>
+        <!-- 2. Colonne Principale (Grille de Produits) -->
+        <section class="w-full md:w-3/4 lg:w-4/5">
+            {% if produits %}
+                <!-- Grille des produits -->
+                <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                    {% for produit in produits %}
+                        {% include 'partials/_product_card.html' with produit=produit %}
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                <div class="mt-12 flex justify-center items-center space-x-2">
+                    {% if produits.has_previous %}
+                        <a href="?{% url_replace page=produits.previous_page_number %}" 
+                           class="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            &laquo; Précédent
+                        </a>
+                    {% endif %}
+                    
+                    <span class="px-4 py-2 bg-blue-50 border border-blue-300 rounded-md text-sm font-medium text-blue-600">
+                        Page {{ produits.number }} sur {{ produits.paginator.num_pages }}
+                    </span>
+                    
+                    {% if produits.has_next %}
+                        <a href="?{% url_replace page=produits.next_page_number %}"
+                           class="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            Suivant &raquo;
+                        </a>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="bg-white p-8 rounded-lg shadow-sm text-center">
+                    <h3 class="text-xl font-semibold text-gray-800">Aucun résultat</h3>
+                    <p class="text-gray-500 mt-2">Désolé, nous n'avons trouvé aucun produit correspondant à vos critères. Essayez une autre recherche ou catégorie.</p>
+                </div>
+            {% endif %}
+        </section>
+
+    </div>
+
+{% endblock %}

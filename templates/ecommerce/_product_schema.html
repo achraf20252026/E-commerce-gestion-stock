@@ -1,0 +1,63 @@
+<!-- templates/ecommerce/_product_schema.html (Amélioré) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org/",
+  "@type": "Product",
+  "name": "{{ produit.nom|escapejs }}", {# escapejs pour la sécurité #}
+  "image": "{{ request.scheme }}://{{ request.get_host }}{{ produit.get_image_principale.image.url }}", {# URL absolue #}
+  "description": "{{ produit.meta_description|default:produit.description|escapejs }}",
+  "sku": "{{ produit.sku }}",
+  "brand": {
+    "@type": "Brand",
+    "name": "{{ produit.fournisseur.nom_societe|default:COMPANY_NAME|escapejs }}"
+  },
+  "offers": {
+    "@type": "Offer",
+    "url": "{{ request.build_absolute_uri }}",
+    "priceCurrency": "{{ SHOP_CURRENCY }}",
+    "price": "{{ produit.prix }}",
+    "priceValidUntil": "{% now 'Y-m-d' %}",
+    "itemCondition": "https://schema.org/NewCondition",
+    "availability": "{% if produit.quantite_en_stock > 0 %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
+    
+    {# --- CHAMPS FACULTATIFS AJOUTÉS --- #}
+    "shippingDetails": {
+      "@type": "OfferShippingDetails",
+      "shippingRate": {
+        "@type": "MonetaryAmount",
+        "value": "20.00", {# Valeur statique pour l'instant #}
+        "currency": "{{ SHOP_CURRENCY }}"
+      },
+      "shippingDestination": {
+        "@type": "DefinedRegion",
+        "addressCountry": "MA" {# Code ISO du pays, ex: MA pour Maroc #}
+      }
+    },
+    "deliveryTime": {
+        "@type": "ShippingDeliveryTime",
+        "handlingTime": {
+          "@type": "QuantitativeValue",
+          "minValue": 0, {# 0 jour de préparation si expédié le jour même #}
+          "maxValue": 1, {# 1 jour de préparation max #}
+          "unitCode": "DAY"
+        },
+        "transitTime": {
+          "@type": "QuantitativeValue",
+          "minValue": 1, {# 1 jour de transit min #}
+          "maxValue": 3, {# 3 jours de transit max #}
+          "unitCode": "DAY"
+        }
+      }
+      // --- FIN DE L'AJOUT ---
+    },
+    "hasMerchantReturnPolicy": {
+      "@type": "MerchantReturnPolicy",
+      "applicableCountry": "MA",
+      "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+      "merchantReturnDays": 14,
+      "returnMethod": "https://schema.org/ReturnByMail",
+      "returnFees": "https://schema.org/FreeReturn"
+    }
+  }
+
+</script>
