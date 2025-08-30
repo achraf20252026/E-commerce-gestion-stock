@@ -1,0 +1,9 @@
+# static/robots.txt
+User-agent: *
+Disallow: /admin/
+Disallow: /compte/
+Disallow: /gestion/
+Disallow: /panier/
+Disallow: /commande/
+
+Sitemap: https://www.votre-nom-de-domaine.com/sitemap.xml
